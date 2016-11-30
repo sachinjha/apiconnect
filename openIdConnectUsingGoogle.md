@@ -42,7 +42,7 @@ headers to identify the identity provider when invoking the secured APIs with th
 3. Click on Add link and select the option to "Import existing Open API" and select the file "google-openid-connect-secured-api.yaml"
 4. Click on the Design tab 
 5. Click on Properties link in the left navigation and edit the value of property <token-url-host> and set it to the hostname 
-for the token application obtained in step <3> of [Deploy OAuth Client](#pushapp)
+for the token application obtained in step <3> of [Deploy OAuth Client](#deployOAuthClient)
 6. Publish the Product and API to a catalog
 
 
@@ -56,13 +56,13 @@ for the token application obtained in step <3> of [Deploy OAuth Client](#pushapp
   - /token
   - /sample
   
-  [<img src="images/token.png" width="200"/>](#token)
+  [<img src="images/token.png" width="600"/>](#token)
 3. Copy the complete URL for /token API and paste it in browser
 4. It should redirect you to login using your google Id and then provide consent to access your profile information to your GoogleOAuthClient app
 5. Once you do that, you will get redirected to page which has the "access_token" and "id_token" in response.
 6. Copy the value of "id_token".  Go to the developer portal and select /sample API
 7. Enter the value of Authorization header in the format i.e.  "Bearer <id_token>"  replacing id_token with the value copied in 6.
-[<img src="images/sample.png" width="200"/>](#token)
+[<img src="images/sample.png" width="600"/>](#token)
 8. click on Invoke. In response you should see the response for /sample end point. 
 
 <a name="realScenario">
