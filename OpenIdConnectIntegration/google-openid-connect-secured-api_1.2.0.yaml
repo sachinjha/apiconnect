@@ -1,0 +1,163 @@
+---
+paths:
+  /sample:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+      parameters:
+      - name: "Authorization"
+        type: "string"
+        required: true
+        in: "header"
+        description: "Bearer <id_token>"
+  /token:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+      security:
+      - {}
+basePath: "/api"
+swagger: "2.0"
+info:
+  x-ibm-name: "google-openid-connect-secured-api"
+  version: "1.2.0"
+  title: "google-openid-connect-secured-api"
+schemes:
+- "https"
+host: "$(catalog.host)"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+- "text/plain"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  catalogs:
+    apic-dev:
+      properties:
+        runtime-url: "$(TARGET_URL)"
+    sb:
+      properties:
+        runtime-url: "http://localhost:4001"
+  assembly:
+    execute:
+    - switch:
+        title: "switch"
+        case:
+        - condition: "((request.verb==='GET')&&(api.operation.path==='/token'))"
+          execute:
+          - invoke:
+              title: "invoke"
+              timeout: 60
+              verb: "GET"
+              cache-response: "time-to-live"
+              cache-ttl: 900
+              target-url: "$(token-url-host)/token"
+          - gatewayscript:
+              title: "gatewayscript"
+              source: "apim.readInputAsJSON(function (error, json) { \nif ( error){\n\
+                \    console.error( error );\n}else {\n    var id_token= json.id_token\n\
+                \    session.output.write( { \"id_token\": id_token } );\n}\n\n});"
+        - condition: "false"
+          execute:
+          - gatewayscript:
+              title: "gatewayscript"
+              source: "// this is not being used because the branch condition is false.\
+                \ \n// replace proxy with this for the 'otherwise' branch in order\
+                \ to see the decoded claims.\n\n apim.setvariable('message.body',\
+                \ apim.getvariable('decoded.claims') )\n\napim.setvariable('message.status.code',\
+                \ \"200\")"
+        - otherwise:
+          - invoke:
+              title: "invoke"
+              timeout: 60
+              verb: "GET"
+              cache-response: "no-cache"
+              cache-ttl: 900
+              target-url: "https://www.googleapis.com/oauth2/v3/certs"
+              output: "google-keys-set"
+          - set-variable:
+              title: "set-variable"
+              actions:
+              - set: "google-keys-set1"
+                value: "{  \"keys\": [   {    \"kty\": \"RSA\",    \"alg\": \"RS256\"\
+                  ,    \"use\": \"sig\",    \"kid\": \"592e1c270637d106a467edba75a36e77d5516908\"\
+                  ,    \"n\": \"64_wPMWzp-F8XqZwek1H2GYytvoGdNuqJprezfBDI5fnFqGdJxuMC5DNAGd1WJGHSP5lsB4104oOAQQweNBLhOdgKrvEfL2th7_ASi_Gpadtd0fHJqQLaZYhwuTbB4JkULIYUftwVTIExSYKvQu1VvwHy-TuXjC8OvaE-fm09zYm3Aab0mtIgSf_hzJPWU1Q_GDIkggr238Mb3dg_1EOevIgH_sSOybZ1dBgT1CFYaTCgCPNJxOz7fFvLZVy-d9NUL5Ph5DHaznt6FGXmeLQe7pE4oPVRjvjm90c9P54iquq0swEWi_OawURtJtd3Ek4BM6G0SEtQJUaqYTIofIKSQ\"\
+                  ,    \"e\": \"AQAB\"   },   {    \"kty\": \"RSA\",    \"alg\": \"\
+                  RS256\",    \"use\": \"sig\",    \"kid\": \"9195c0d0f17073b6da362d4c2e9676fca16a8ce2\"\
+                  ,    \"n\": \"n0aMBCYZ-fi7uNTaU3745PIlVvv0RtUgFYr1M6viuRVK84EnewmXO8R3YchBwZUPpuKdky9FsUqF68iWAQDCJ3Op2MH17NYjLlqUbofw-i3LMHV1OTK0bZpH-Fpnh7wlushEsL9Qb5LgMu1RB-mWbDzySJm8wxM9YrmD6p2OTJml_dP26xZajrVj4q2dJGcgzeuUOg39uwQQu-snyZsr1ce5vorRYZz2xhqI4eNepDaMpcWJ0JP9b67Hu9yBiZEcAnugIGKyws5mfSElUn8ZaECsGQZHYIFIcD11PuScqrmlL40SG1pE40mRplvUkQS3HEvvwehK4zTYPrHSPlyRow\"\
+                  ,    \"e\": \"AQAB\"   },   {    \"kty\": \"RSA\",    \"alg\": \"\
+                  RS256\",    \"use\": \"sig\",    \"kid\": \"deda27fb7bb21e78fa8b588e05ce1a21f9009da5\"\
+                  ,    \"n\": \"pqZlplotIUJOWMYn4Z3By0PO3o7bABYaVqy2msYZkMn_RybSyyxj6acPCbPnVMD9LMFDr8hzWs2tsdVxtoXiDGUYdANKdQrbsGvcw9n2pMVk1cY5VusPZwHkT6hw6kqKeJH5k-7tEEYAZKqs1RxtdP-tE6D9VfMl-Wt4oJ_y4d57rZdcQEEuTxHDgG8Lowz9OL_UhPxFJszDpf0mfItG3BULy3doQJwJ5HpxMba4cpvNCT-XWOXbBd22eI7Tq3VsVIdjtGt0RlVjtO_2B4FjHUMq2DatGZfe2tH647prqwgA5EXB7mMfSI99o89KGBHpK-Zdzqpb0fbZKdPkiTBmzQ\"\
+                  ,    \"e\": \"AQAB\"   },   {    \"kty\": \"RSA\",    \"alg\": \"\
+                  RS256\",    \"use\": \"sig\",    \"kid\": \"38cacf37f529d8c36d0e6bdc5993e5d7695d8978\"\
+                  ,    \"n\": \"tvSXmyX9dYv27KXYVVTw8tBvVdvLZI3HihkN65lHvSVtsZVrtceuqF0fZEKfivFrawK4rxc3t6N7xltdDYz8RQq5Qzf1Jf-vCsJKBh4XtXe8BZJbkF8Nitff4O0Kp55hFBmEE2i8JsPumfzEaS_DBNKgWKbaMQifGD32eIWPioiCZiZ6CEXtfyuTQ72oBFoPvFT7bDZvHdMFjUy2gz6MjZ1T3F9GkwfoOjtJw_OMWcoBvFJdzEyWrvRimKuP-GICSGLqj1-qBE7jMbP72Rpbxl_fwqp63u_U3m9tBgR6fXTDBgJR-vaEtHnHjuf2cbzXcgRKusdN5Y1z28Nqz-Llxw\"\
+                  ,    \"e\": \"AQAB\"   }  ] }"
+              - set: "jwk-key1"
+                value: "{    \"kty\": \"RSA\",    \"alg\": \"RS256\",    \"use\":\
+                  \ \"sig\",    \"kid\": \"511a3e85d2452aee960ed557e2666a8c5cedd8ae\"\
+                  ,    \"n\": \"yOLlOqu8tVQHIMCsBSAfSBGJLqPo_Rz1XOIzz5h2Xu3-aIUSCnxBTnSa3mMyxKPGFYHNr2oQTz9gE-2R_huB5t6LI_Jzs1EBB8zsMXnEaNCnmZZ-Z7oY8rNcdBHS-ddTnFIjsGfwoI5KQHUodus48ovBI155w_J5HwQTaMVv8CthGWeUymlTe07nAvYC6yLVkXely2LYdZmWct2t0GuA5Kkw2ah7HEpmY-mNmwZYgt4Rzz1T_ecFj3H5THJPqSBoo7rm3ae6rO43C8WodZsp7Z0zfA35CzSPk8ybl7SlAgDcGZxZp6wT7PZlXO8ZxxtPUXJetEFlpllpcRdf0kcs7Q\"\
+                  ,    \"e\": \"AQAB\"   }"
+          - gatewayscript:
+              title: "gatewayscript"
+              source: "var keyset = apim.getvariable('google-keys-set')\n\n\nvar authNode\
+                \ = apim.getvariable('request.headers.authorization');\n\nvar jwtToken\
+                \ = authNode.replace(/^Bearer /g, '')\nconsole.debug ( \"token is\
+                \ %s\", jwtToken)\napim.setvariable( 'jwtToken', jwtToken);\nvar ctx\
+                \ = session.name('myContext') || session.createContext('myContext');\n\
+                \n\nvar headerStr = jwtToken.split(\".\") [0]\n\nvar header= new Buffer(headerStr,\
+                \ 'base64').toString('ascii')\nvar headerJson = JSON.parse( header)\
+                \ \nvar usedKey = keyset.body.keys.find( function( key)  {\n    return\
+                \ ( key.kid == headerJson.kid)\n});\n\n//apim.setvariable( 'message.body',\
+                \ usedKey)\n\napim.setvariable('jwk-key', JSON.stringify(usedKey)\
+                \ );\n\n"
+          - jwt-validate:
+              title: "jwt-validate"
+              jwt: "jwtToken"
+              output-claims: "decoded.claims"
+              jws-jwk: "jwk-key"
+              iss-claim: "accounts.google.com"
+              aud-claim: "90459887577-q4c1kbbti3npp9splsf7m4l2fcvpblr6.apps.googleusercontent.com"
+          - proxy:
+              title: "proxy"
+              timeout: 60
+              verb: "keep"
+              cache-response: "no-cache"
+              target-url: "$(token-url-host)/sample"
+              cache-ttl: 5
+    catch:
+    - errors:
+      - "RuntimeError"
+      execute:
+      - set-variable:
+          title: "set-variable"
+          actions:
+          - set: "message.status.code"
+            value: "400"
+          - set: "message.status.reason"
+            value: "bad request"
+      - gatewayscript:
+          title: "gatewayscript"
+          source: "//var error = { \"error\" : apim.getvariable('jwt-validate.error-message')\
+            \ }\n//apim.setvariable('message.body', JSON.stringify(error) );\napim.setvariable('message.body',\
+            \ apim.getvariable('jwt-validate.error-message')); \n\napim.setvariable('message.status.code',\
+            \ \"401\")"
+  properties:
+    token-url-host:
+      value: "https://googleauthapi.mybluemix.net"
+      description: ""
+      encoded: false
+  gateway: "datapower-gateway"
+  phase: "realized"

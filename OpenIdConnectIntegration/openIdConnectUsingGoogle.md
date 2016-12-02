@@ -7,7 +7,7 @@ headers to identify the identity provider when invoking the secured APIs with th
 
 ## Steps to be followed.
 1. Deploy an application with an endpoint (e.g. /token ) which initiates the OAuth exchange with Google and returns the access_token and id_token in response.
-  - sample app under [GoogleOAuthClient](/GoogleOAuthClient)
+  - sample app under [GoogleOAuthClient](/OpenIdConnectIntegration/GoogleOAuthClient)
   - Follow the steps to [deploy the OAuthClient](#deployOAuthClient)
 1. Have an endpoint in the API which provides the ID Token once the user ( resource owner ) authenticates and provides consent.
   - Gateway assembly for this endpoint has an invoke policy which points to the client application ( Google OAuth client ) 
@@ -37,13 +37,14 @@ headers to identify the identity provider when invoking the secured APIs with th
 ##Steps to import the sample API in API Manager
 </a>
 
-1. Go to bluemix dashboard and select the API Connect service instance.
-2. Click on Drafts link 
-3. Click on Add link and select the option to "Import existing Open API" and select the file "google-openid-connect-secured-api.yaml"
-4. Click on the Design tab 
-5. Click on Properties link in the left navigation and edit the value of property <token-url-host> and set it to the hostname 
+1. Download the file [google-openid-connect-secured-api.yaml](/OpenIdConnectIntegration/google-openid-connect-secured-api.yaml).
+2. Go to bluemix dashboard and select the API Connect service instance.
+3. Click on Drafts link 
+4. Click on Add link and select the option to "Import existing Open API" and select the file "google-openid-connect-secured-api.yaml"
+5. Click on the Design tab 
+6. Click on Properties link in the left navigation and edit the value of property <token-url-host> and set it to the hostname 
 for the token application obtained in step <3> of [Deploy OAuth Client](#deployOAuthClient)
-6. Publish the Product and API to a catalog
+7. Publish the Product and API to a catalog
 
 
 <a name="TestTheAPI">
@@ -56,13 +57,13 @@ for the token application obtained in step <3> of [Deploy OAuth Client](#deployO
   - /token
   - /sample
   
-  [<img src="images/token.png" width="600"/>](#token)
+  [<img src="/OpenIdConnectIntegration/images/token.png" width="600"/>](#token)
 3. Copy the complete URL for /token API and paste it in browser
 4. It should redirect you to login using your google Id and then provide consent to access your profile information to your GoogleOAuthClient app
 5. Once you do that, you will get redirected to page which has the "access_token" and "id_token" in response.
 6. Copy the value of "id_token".  Go to the developer portal and select /sample API
 7. Enter the value of Authorization header in the format i.e.  "Bearer <id_token>"  replacing id_token with the value copied in 6.
-[<img src="images/sample.png" width="600"/>](#token)
+[<img src="/OpenIdConnectIntegration/images/sample.png" width="600"/>](#token)
 8. click on Invoke. In response you should see the response for /sample end point. 
 
 <a name="realScenario">
