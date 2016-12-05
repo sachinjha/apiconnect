@@ -1,0 +1,118 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "pingfederate-secured-api"
+  title: "pingFederate secured API"
+  version: "1.0.0"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/pingfederate-secured-api"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - switch:
+        title: "switch"
+        case:
+        - condition: "false"
+          execute:
+          - xslt:
+              title: "xslt"
+              input: false
+              source: "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\"\
+                >\n      <xsl:template match=\"/\">\n        <Hello>World!</Hello>\n\
+                \      </xsl:template>\n    </xsl:stylesheet>"
+        - otherwise:
+          - gatewayscript:
+              title: "validate-access-token"
+              source: "var urlopen = require('urlopen');\nvar console = { \n    'log':function(str){\n\
+                \            if ($(debugMode)) {\n                var urlopen = require\
+                \ ('urlopen');\n                var options = { \n               \
+                \     target: \"$(debugURL)\",\n                    method: 'post',\n\
+                \                    contentType: 'application/json', \n         \
+                \           data : {'log':str}};\n                urlopen.open (options,\
+                \ function (error, response) {});\n            }\n    }\n}\n\n\n\n\
+                var authNode = apim.getvariable('request.headers.authorization');\n\
+                \nvar access_token = authNode.replace(/^Bearer /g, '')\nconsole.log\
+                \ ( \"access_token is \"+  access_token)\n\nvar username= \"username\"\
+                \ // ping federate username\nvar password = \"password\" // ping federate\
+                \ password\nvar authHeader = new Buffer( username + \":\" + password).toString('base64url');\n\
+                \nvar headers = {\n    \"Authorization\": \n     \"Bearer \" + authHeader,\n\
+                \    Accept: 'application/json'\n}\n\n//var urlData = \"grant_type%3Durn.pingidentity.com%3Aoauth2%3Agrant_type%3Avalidate_bearer%2Caccess_token%3D\"\
+                \ + access_token ;\nvar urlData = \"grant_type=urn.pingidentity.com:oauth2:grant_type:validate_bearer&access_token=\"\
+                \ + access_token\n\n \n\nconsole.log ( JSON.stringify(urlData) ) ;\n\
+                \n\nvar options = { \n    target: \"$(verifyAccessURL)\", \n    method:\
+                \ 'post', \n    contentType: 'application/x-www-form-urlencoded',\n\
+                \    headers: headers,\n   data: urlData\n    \n        \n    \n};\n\
+                \nconsole.log (\" calling urlopen\")\nconsole.log ( JSON.stringify(options)\
+                \ )\n\n\n\nurlopen.open (options, function (error, response) {\n \
+                \    console.log ( response);\n     if ( response.statusCode == 200\
+                \ ){\n         response.readAsJSON( function (err, resp){\n      \
+                \      \n            console.log ( JSON.stringify(resp));\n      \
+                \      if ( resp.expires_in && resp.expires_in > 0 ){\n          \
+                \      console.log ( \"token is valid \" +  resp.expires_in );\n \
+                \           }else {\n                throw new RuntimeError( 'token\
+                \ has expired')\n            }\n            \n            \n     \
+                \        \n        });\n     }else {\n         console.log ( error);\n\
+                \         throw new RuntimeError('error response from pingfederate');\n\
+                \     }\n     \n}); \n"
+          - set-variable:
+              title: "set-variable"
+              actions:
+              - set: "message.status.code"
+                value: "200"
+              - set: "message.body"
+                value: "{ \"response\" : \"value\" }"
+    catch:
+    - errors:
+      - "RuntimeError"
+      execute:
+      - gatewayscript:
+          title: "gatewayscript"
+          source: "apim.setvariable('message.status.code', \"401\")\nvar errorM =\
+            \ \"token is not valid\"\nvar errorJson = {  \"error\" : errorM } \napim.setvariable('message.body'\
+            \ , JSON.stringify( errorJson) )\n"
+  phase: "realized"
+  properties:
+    debugURL:
+      value: "http://loggingEndpoint.mybluemix.net/log"
+      description: ""
+      encoded: false
+    debugMode:
+      value: "true"
+      description: ""
+      encoded: false
+    verifyAccessURL:
+      value: "http://dummypingfederateserver.mybluemix.net/verifyAccess"
+      description: ""
+      encoded: false
+  catalogs: {}
+paths:
+  /securedAPIv1:
+    get:
+      responses:
+        200:
+          description: "200 OK"
+      parameters:
+      - name: "Authorization"
+        type: "string"
+        required: true
+        in: "header"
+        description: "Bearer <ping_federate_access_token>"
+definitions: {}
+tags: []

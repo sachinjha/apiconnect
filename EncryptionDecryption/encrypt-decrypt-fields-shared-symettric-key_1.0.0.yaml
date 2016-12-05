@@ -1,0 +1,159 @@
+---
+swagger: "2.0"
+info:
+  x-ibm-name: "encrypt-decrypt-fields-shared-symettric-key"
+  title: "encrypt-decrypt-fields-shared-symettric-key(HS256)"
+  version: "1.0.0"
+schemes:
+- "https"
+host: "$(catalog.host)"
+basePath: "/encrypt-decrypt-fields"
+consumes:
+- "application/json"
+produces:
+- "application/json"
+securityDefinitions:
+  clientIdHeader:
+    type: "apiKey"
+    in: "header"
+    name: "X-IBM-Client-Id"
+security:
+- clientIdHeader: []
+x-ibm-configuration:
+  testable: true
+  enforced: true
+  cors:
+    enabled: true
+  assembly:
+    execute:
+    - set-variable:
+        title: "set-variable"
+        actions:
+        - set: "hs256-key"
+          value: "{   \"alg\": \"HS256\",   \"kty\": \"oct\",   \"use\": \"enc\",\
+            \   \"k\": \"rl9wTW8dokgL-3PkcIO72pAvI7qWvkHB2DVDXFUJFh0\",   \"kid\"\
+            : \"hs256-key\" }"
+    - operation-switch:
+        title: "operation-switch"
+        case:
+        - operations:
+          - verb: "post"
+            path: "/encrypt"
+          execute:
+          - gatewayscript:
+              title: "gatewayscript"
+              source: "var jose = require('jose');\n//var crypto = require('crypto')\n\
+                //var jwk = require( 'jwk')\n\nvar console = { 'log':function(str){if\
+                \ ($(debugMode)) {var urlopen = require ('urlopen');var options =\
+                \ { target: \"$(debugURL)\", method: 'post', contentType: 'application/json',\
+                \ data : {'log':str}};urlopen.open (options, function (error, response)\
+                \ {});}}}\n\n\nvar test = \"Hello World sachin\";\nconsole.log(test);\n\
+                \ntest = \"Goodbye World sachin\";\nconsole.log(test);\n\nvar jwkkey1\
+                \ = apim.getvariable( 'hs256-key')\n\nvar jwkkey = JSON.parse( jwkkey1)\n\
+                \n// get the input from the request\n\napim.readInputAsJSON(function(readAsBufferError,\
+                \ jsonData) {\n    if (readAsBufferError) {\n        console.log('Error\
+                \ on readAsBuffer: ' + readAsBufferError);\n    } else {\n    \n \
+                \   \n        console.log (JSON.stringify(jsonData))\n        \n \
+                \        try {\n            //--------------------------------------------------------------------------\n\
+                \            // Example: JWE Object Compact Serialization Format\n\
+                \            //--------------------------------------------------------------------------\n\
+                \            // Create a jweHeader object and specify the encryption\
+                \ algorithm to use\n\n            var jweHdr = jose.createJWEHeader('A128CBC-HS256');\n\
+                \            // Set the algorithm header parameter in the protected\
+                \ header\n\n            jweHdr.setProtected('alg', 'dir');\n\n   \
+                \         // Set the key configuration object to process the encrypted\
+                \ key\n            jweHdr.setKey(jwkkey);\n            \n\n      \
+                \      // Specify which jweHeader defines how to encrypt this message\
+                \ then\n            // update the jweEncrypter with the message to\
+                \ be encrypted then\n            // encrypt the JWE Encryption object\
+                \ using the compact serialization\n            // output_format as\
+                \ specified\n            jose.createJWEEncrypter(jweHdr).update(jsonData.ssn,\
+                \ 'ascii').encrypt('compact', function(error, jweCompactObj) {\n \
+                \               if (error) {\n                    console.log( error)\n\
+                \                    // An error occurred during the encrypt process\
+                \ and is passed back\n                    // via the error parameter\
+                \ since .encrypt is an asynchronous call\n                    // write\
+                \ the error to the output context\n                    session.reject(error);\n\
+                \                    return;\n                } else {\n         \
+                \           console.log (\"sachin encryption \" + jweCompactObj)\n\
+                \                    jsonData.ssn = jweCompactObj;\n             \
+                \       \n                    console.log ( jsonData);\n         \
+                \       apim.setvariable('message.body', jsonData);\n            \
+                \    }\n            }); // encrypt function\n        } catch (e) {\n\
+                \            session.reject(\"jwe-encrypt-compact.js error: \" + e);\n\
+                \            return;\n        }\n\n    }\n    });\n\n\n"
+        - operations:
+          - verb: "post"
+            path: "/decrypt"
+          execute:
+          - gatewayscript:
+              title: "gatewayscript"
+              source: "var jose = require('jose');\n//var crypto = require('crypto')\n\
+                //var jwk = require( 'jwk')\n\nvar console = { 'log':function(str){if\
+                \ ($(debugMode)) {var urlopen = require ('urlopen');var options =\
+                \ { target: \"$(debugURL)\", method: 'post', contentType: 'application/json',\
+                \ data : {'log':str}};urlopen.open (options, function (error, response)\
+                \ {});}}}\n\n\nvar test = \"Hello World sachin\";\nconsole.log(test);\n\
+                \ntest = \"Goodbye World sachin\";\nconsole.log(test);\n\nvar jwkkey1\
+                \ = apim.getvariable( 'hs256-key')\n\nvar jwkkey = JSON.parse( jwkkey1)\n\
+                \n// get the input from the request\n\napim.readInputAsJSON(function(readAsBufferError,\
+                \ jsonData) {\n    if (readAsBufferError) {\n        console.log('Error\
+                \ on readAsBuffer: ' + readAsBufferError);\n    } else {\n    \n \
+                \   \n        console.log (JSON.stringify(jsonData))\n        \n \
+                \        try {\n           \n// jwe object, compact serialization.\n\
+                var jweobj = jose.parse(jsonData.ssn);\njweobj.setKey(jwkkey);\njose.createJWEDecrypter(jweobj).decrypt(\
+                \ 'utf8', function(error, plaintext) {\n    if (error) {\n       \
+                \  apim.setvariable( \"message.body\", \"jwe decrypt fail: \"+error);\n\
+                \     } else {\n         jsonData.ssn = plaintext ;\n         apim.setvariable(\
+                \ \"message.body\", jsonData ) \n     }\n});\n        } catch (e)\
+                \ {\n            session.reject(\"jwe-encrypt-compact.js error: \"\
+                \ + e);\n            return;\n        }\n\n    }\n    });\n\n\n"
+        otherwise: []
+    catch: []
+  phase: "realized"
+  properties:
+    debugMode:
+      value: "true"
+      description: ""
+      encoded: false
+    debugURL:
+      value: "http://loggingEndpoint.mybluemix.net/log"
+      description: ""
+      encoded: false
+paths:
+  /decrypt:
+    post:
+      responses:
+        200:
+          description: "200 OK"
+          schema:
+            $ref: "#/definitions/Employee"
+      parameters:
+      - name: "employee"
+        required: false
+        in: "body"
+        schema:
+          $ref: "#/definitions/Employee"
+  /encrypt:
+    post:
+      responses:
+        200:
+          description: "200 OK"
+      parameters:
+      - name: "employee"
+        required: false
+        in: "body"
+        schema:
+          $ref: "#/definitions/Employee"
+definitions:
+  Employee:
+    properties:
+      ssn:
+        type: "string"
+      name:
+        type: "string"
+    additionalProperties: false
+    required:
+    - "name"
+    - "ssn"
+tags: []
