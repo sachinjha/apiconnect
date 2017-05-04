@@ -1,5 +1,5 @@
 
-#Integration of API Connect with OpenId Connect provider ( Google+)
+# Integration of API Connect with OpenId Connect provider ( Google+)
 
 One can secure the APIs using one or more authentication providers implmementing OpenId Connect protocol using API Connect
 policies. In this example we will integrate with Google+.  This can be easily extended to support multiple providers and adding 
@@ -22,7 +22,7 @@ headers to identify the identity provider when invoking the secured APIs with th
 
         
 <a name="deployOAuthClient">
-##Deploy OAuth Client
+## Deploy OAuth Client
 </a>
 
 1. Clone the project using git clone https://github.com/sachinjha/apiconnect
@@ -34,7 +34,7 @@ headers to identify the identity provider when invoking the secured APIs with th
 
 
 <a name="ImportsampleAPI">
-##Steps to import the sample API in API Manager
+## Steps to import the sample API in API Manager
 </a>
 
 1. Download the file [google-openid-connect-secured-api.yaml](/OpenIdConnectIntegration/google-openid-connect-secured-api.yaml).
@@ -48,7 +48,7 @@ for the token application obtained in step <3> of [Deploy OAuth Client](#deployO
 
 
 <a name="TestTheAPI">
-##Test the API 
+## Test the API 
 </a>
 
 
