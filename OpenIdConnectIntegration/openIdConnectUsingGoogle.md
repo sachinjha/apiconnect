@@ -20,9 +20,9 @@ headers to identify the identity provider when invoking the secured APIs with th
 3. The API consumers need to use the token endpoint to get the token and use that in the Authorization header for all protected APIs        
         
 
-        
+## Deploy OAuth Client        
 <a name="deployOAuthClient">
-## Deploy OAuth Client
+
 </a>
 
 1. Clone the project using git clone https://github.com/sachinjha/apiconnect
@@ -32,9 +32,9 @@ headers to identify the identity provider when invoking the secured APIs with th
 5. Type in <a name="pushapp">cf push <app name for OAuthClient></a>  
 6. Ensure that the app is running.
 
-
-<a name="ImportsampleAPI">
 ## Steps to import the sample API in API Manager
+<a name="ImportsampleAPI">
+
 </a>
 
 1. Download the file [google-openid-connect-secured-api.yaml](/OpenIdConnectIntegration/google-openid-connect-secured-api.yaml).
@@ -46,9 +46,9 @@ headers to identify the identity provider when invoking the secured APIs with th
 for the token application obtained in step <3> of [Deploy OAuth Client](#deployOAuthClient)
 7. Publish the Product and API to a catalog
 
-
-<a name="TestTheAPI">
 ## Test the API 
+<a name="TestTheAPI">
+
 </a>
 
 
@@ -66,8 +66,9 @@ for the token application obtained in step <3> of [Deploy OAuth Client](#deployO
 [<img src="/OpenIdConnectIntegration/images/sample.png" width="600"/>](#token)
 8. click on Invoke. In response you should see the response for /sample end point. 
 
-<a name="realScenario">
 ## How to extend this for a real scenario
+<a name="realScenario">
+
 </a>
 
 1. Instead of "/sample" you can have any other endpoint that you want to secure. 
